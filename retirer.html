@@ -268,7 +268,7 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
-      margin-bottom: 25px;
+      margin-bottom: 15px;
     }
 
     .method-card {
@@ -312,6 +312,65 @@
     .method-fee {
       font-size: 11px;
       color: var(--text-dim);
+    }
+
+    /* ===== CHAMP NUMÉRO DE TÉLÉPHONE ===== */
+    .phone-section {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .phone-input-wrapper {
+      position: relative;
+      margin-top: 10px;
+    }
+
+    .phone-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--primary);
+      font-size: 16px;
+    }
+
+    .phone-input {
+      width: 100%;
+      padding: 16px 16px 16px 45px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      color: var(--text-light);
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      transition: var(--transition);
+    }
+
+    .phone-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(0, 255, 204, 0.05);
+    }
+
+    .phone-input::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .phone-info {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .phone-info i {
+      color: var(--primary);
     }
 
     /* ===== MONTANT À RETIRER ===== */
@@ -584,6 +643,17 @@
       font-weight: 600;
     }
 
+    .history-phone {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .history-phone i {
+      color: var(--primary);
+      margin-right: 3px;
+    }
+
     .history-amount {
       font-weight: 700;
     }
@@ -711,7 +781,8 @@
     }
 
     .modal-details p {
-      margin: 5px 0;
+      margin: 8px 0;
+      font-size: 14px;
     }
 
     .modal-buttons {
@@ -864,7 +935,7 @@
     </div>
   </header>
 
-    <!-- ===== CONTENU PRINCIPAL ===== -->
+  <!-- ===== CONTENU PRINCIPAL ===== -->
   <div class="container">
     
     <!-- ===== CARTE SOLDE ===== -->
@@ -925,6 +996,25 @@
       </div>
     </div>
 
+    <!-- ===== CHAMP NUMÉRO DE TÉLÉPHONE ===== -->
+    <div class="phone-section">
+      <label class="amount-label">
+        <i class="fas fa-phone-alt"></i>
+        Numéro de téléphone
+      </label>
+      <div class="phone-input-wrapper">
+        <i class="fas fa-phone phone-icon"></i>
+        <input type="tel" id="phoneNumber" class="phone-input" 
+               placeholder="Ex: 90 12 34 56" 
+               value=""
+               required>
+      </div>
+      <div class="phone-info">
+        <i class="fas fa-info-circle"></i>
+        Entrez le numéro où vous recevrez l'argent
+      </div>
+    </div>
+
     <!-- ===== MONTANT À RETIRER ===== -->
     <h3 class="section-title">
       <i class="fas fa-edit"></i>
@@ -932,7 +1022,7 @@
     </h3>
 
     <div class="amount-section">
-      <label class="amount-label">Entrez le montant (min 1 000 FCFA)</label>
+      <label class="amount-label">Entrez le montant (min 5 000 FCFA)</label>
       <div class="amount-input-wrapper">
         <input type="number" id="amountInput" class="amount-input" 
                placeholder="0" min="5000" step="1000" value="5000">
@@ -941,9 +1031,9 @@
 
       <div class="quick-amounts">
         <div class="quick-amount" data-amount="5000">5 000</div>
-        <div class="quick-amount" data-amount="6000">6 000</div>
         <div class="quick-amount" data-amount="10000">10 000</div>
         <div class="quick-amount" data-amount="20000">20 000</div>
+        <div class="quick-amount" data-amount="50000">50 000</div>
       </div>
     </div>
 
@@ -1043,6 +1133,11 @@
         userData = JSON.parse(userDataStr);
         updateBalance();
         checkWithdrawBlock();
+        
+        // Pré-remplir le numéro de téléphone si existant
+        if (userData.phone) {
+          document.getElementById('phoneNumber').value = userData.phone;
+        }
       } else {
         window.location.href = 'login.html';
       }
@@ -1071,6 +1166,7 @@
       const withdrawBtn = document.getElementById('withdrawBtn');
       const methodsGrid = document.getElementById('methodsGrid');
       const amountInput = document.getElementById('amountInput');
+      const phoneInput = document.getElementById('phoneNumber');
       
       if (activeInvestments.length === 0) {
         // AUCUN INVESTISSEMENT ACTIF - Retrait autorisé
@@ -1078,6 +1174,7 @@
         activeInvestmentsList.innerHTML = '';
         methodsGrid.style.opacity = '1';
         amountInput.disabled = false;
+        phoneInput.disabled = false;
         checkWithdrawButton();
         return;
       }
@@ -1085,6 +1182,7 @@
       // IL Y A DES INVESTISSEMENTS ACTIFS - Retrait bloqué
       methodsGrid.style.opacity = '0.5';
       amountInput.disabled = true;
+      phoneInput.disabled = true;
       
       // Calculer la date de fin la plus lointaine
       const endDates = activeInvestments.map(inv => new Date(inv.endDate).getTime());
@@ -1152,8 +1250,9 @@
       const withdrawBtn = document.getElementById('withdrawBtn');
       const amount = parseInt(document.getElementById('amountInput').value) || 0;
       const balance = userData?.balance || 0;
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
       
-      if (amount >= 5000 && amount <= balance) {
+      if (amount >= 5000 && amount <= balance && phoneNumber.length >= 8) {
         withdrawBtn.disabled = false;
         withdrawBtn.classList.remove('blocked');
         withdrawBtn.innerHTML = '<i class="fas fa-paper-plane"></i> DEMANDER LE RETRAIT';
@@ -1193,14 +1292,19 @@
         });
       });
 
+      // Champ téléphone
+      document.getElementById('phoneNumber').addEventListener('input', function() {
+        checkWithdrawButton();
+      });
+
       // Bouton de retrait
       document.getElementById('withdrawBtn').addEventListener('click', openConfirmModal);
 
       // Bouton effacer historique
       document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
     }
-
-    // ============================================
+  
+     // ============================================
     // DÉFINIR LE MONTANT
     // ============================================
     function setAmount(amount) {
@@ -1235,9 +1339,22 @@
       const fee = methods[selectedMethod].fee;
       const net = amount - fee;
       const methodName = methods[selectedMethod].name;
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
+      
+      // Validation du numéro
+      if (!phoneNumber) {
+        showNotification('❌ Erreur', 'Veuillez entrer votre numéro de téléphone', 'error');
+        return;
+      }
+      
+      if (phoneNumber.length < 8) {
+        showNotification('❌ Erreur', 'Numéro de téléphone invalide', 'error');
+        return;
+      }
       
       document.getElementById('modalDetails').innerHTML = `
         <p><strong>Méthode:</strong> ${methodName}</p>
+        <p><strong>Numéro:</strong> ${phoneNumber}</p>
         <p><strong>Montant demandé:</strong> ${formatCurrency(amount)} FCFA</p>
         <p><strong>Frais:</strong> ${formatCurrency(fee)} FCFA</p>
         <p><strong>Vous recevrez:</strong> ${formatCurrency(net)} FCFA</p>
@@ -1266,6 +1383,7 @@
       const amount = parseInt(document.getElementById('amountInput').value) || 0;
       const fee = methods[selectedMethod].fee;
       const net = amount - fee;
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
       
       // Vérifier une dernière fois que le retrait est autorisé
       const investments = userData.investments || [];
@@ -1281,6 +1399,10 @@
       userData.balance -= amount;
       userData.totalWithdrawn = (userData.totalWithdrawn || 0) + amount;
       
+      // Sauvegarder le numéro dans le profil de l'utilisateur
+      userData.phone = phoneNumber;
+      localStorage.setItem(`earnzone_user_${userId}`, JSON.stringify(userData));
+      
       // Créer l'historique
       const now = new Date();
       const withdrawal = {
@@ -1291,6 +1413,7 @@
         net: net,
         fee: fee,
         method: methods[selectedMethod].name,
+        phone: phoneNumber,
         status: 'pending',
         timestamp: now.getTime()
       };
@@ -1310,11 +1433,11 @@
       closeModal();
       
       // Notification
-      showNotification('✅ Retrait demandé', `Vous recevrez ${formatCurrency(net)} FCFA dans 24-48h`, 'success');
+      showNotification('✅ Retrait demandé', `Vous recevrez ${formatCurrency(net)} FCFA sur ${phoneNumber}`, 'success');
       
       // Réinitialiser
-      document.getElementById('amountInput').value = 1000;
-      setAmount(1000);
+      document.getElementById('amountInput').value = 5000;
+      setAmount(5000);
       checkWithdrawButton();
     }
 
@@ -1368,6 +1491,9 @@
             <div class="history-info">
               <div class="history-date">${item.date} ${item.time}</div>
               <div class="history-method">${item.method}</div>
+              <div class="history-phone">
+                <i class="fas fa-phone"></i> ${item.phone || 'Non spécifié'}
+              </div>
             </div>
             <div style="display: flex; align-items: center;">
               <div>
@@ -1455,6 +1581,11 @@
           userData = freshData;
           updateBalance();
           checkWithdrawBlock();
+          
+          // Mettre à jour le numéro de téléphone si changé ailleurs
+          if (freshData.phone) {
+            document.getElementById('phoneNumber').value = freshData.phone;
+          }
         }
       }
     }, 3000);
