@@ -1,17 +1,16 @@
 {
   "name": "earnZone",
   "short_name": "earnZone",
-  "start_url": "/earnZone14/",
-  "scope": "/earnZone14/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/earnZone14/icon.png",
+      "src": "icon.png",
       "sizes": "512x512",
       "type": "image/png"
     }
   ]
 }
-
