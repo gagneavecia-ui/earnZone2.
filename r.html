@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>EarnZone - Roue de la Chance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ===== VARIABLES GLOBALES ===== */
+    :root {
+      --primary: #00ffcc;
+      --primary-dark: #00cca3;
+      --secondary: #ff4d94;
+      --accent: #9d4edd;
+      --bg-dark: #000000;
+      --bg-medium: #0a0a0a;
+      --bg-light: #1a1a1a;
+      --text-light: #ffffff;
+      --text-dim: #94a3b8;
+      --card-bg: rgba(20, 20, 20, 0.8);
+      --card-border: rgba(255, 255, 255, 0.05);
+      --success: #4cff4c;
+      --warning: #ffcc00;
+      --danger: #ff4757;
+      --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+      
+      /* Couleurs de la roue */
+      --gold: #ffd700;
+      --silver: #c0c0c0;
+      --bronze: #cd7f32;
+      --blue: #00ffcc;
+      --pink: #ff4d94;
+      --purple: #9d4edd;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #000000;
+      color: var(--text-light);
+      padding-bottom: 100px;
+      min-height: 100vh;
+    }
+
+    .gradient-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      background: radial-gradient(circle at 20% 30%, rgba(255, 215, 0, 0.05) 0%, transparent 40%),
+                  radial-gradient(circle at 80% 70%, rgba(0, 255, 204, 0.05) 0%, transparent 40%);
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 5%;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-btn:hover {
+      color: var(--primary);
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .page-title i {
+      color: var(--primary);
+    }
+
+    .balance-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 255, 204, 0.05);
+      border: 1px solid rgba(0, 255, 204, 0.1);
+      border-radius: 30px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* ===== CONTENEUR ===== */
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+
+    /* ===== EN-TÊTE ===== */
+    .wheel-header {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0, 255, 204, 0.1));
+      border-radius: 24px;
+      padding: 25px;
+      margin-bottom: 25px;
+      text-align: center;
+      border: 1px solid var(--card-border);
+    }
+
+    .wheel-header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, var(--gold), var(--primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .wheel-header p {
+      color: var(--text-dim);
+      margin-bottom: 20px;
+    }
+
+    .week-badge {
+      display: inline-block;
+      background: rgba(255, 215, 0, 0.1);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 30px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 15px;
+    }
+
+    /* ===== ROUE ===== */
+    .wheel-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 30px;
+      cursor: pointer;
+    }
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+      transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    }
+
+    .wheel-segment {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      transform-origin: 100% 100%;
+      left: 0;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: black;
+      clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    .segment-0 { transform: rotate(0deg); background: var(--gold); }
+    .segment-1 { transform: rotate(60deg); background: var(--primary); }
+    .segment-2 { transform: rotate(120deg); background: var(--pink); }
+    .segment-3 { transform: rotate(180deg); background: var(--purple); }
+    .segment-4 { transform: rotate(240deg); background: var(--silver); }
+    .segment-5 { transform: rotate(300deg); background: var(--bronze); }
+
+    .segment-content {
+      transform: rotate(30deg) translateX(30px);
+      font-size: 20px;
+    }
+
+    .wheel-pointer {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 40px solid var(--danger);
+      z-index: 10;
+      filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+    }
+
+    /* =awan ===== STATISTIQUES ===== */
+    .stats-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* ===== SECTIONS DE GAINS ===== */
+    .prizes-section {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 25px;
+      margin: 25px 0;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--primary);
+    }
+
+    .prizes-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+
+    .prize-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .prize-color {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      margin: 0 auto 10px;
+    }
+
+    .color-0 { background: var(--gold); }
+    .color-1 { background: var(--primary); }
+    .color-2 { background: var(--pink); }
+    .color-3 { background: var(--purple); }
+    .color-4 { background: var(--silver); }
+    .color-5 { background: var(--bronze); }
+
+    .prize-label {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .prize-amount {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* ===== BOUTONS ===== */
+    .btn-primary {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, var(--gold), #ffaa00);
+      color: black;
+      border: none;
+      border-radius: 16px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(255, 215, 0, 0.4);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      color: var(--text-light);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      margin: 5px 0;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--primary);
+      background: rgba(0, 255, 204, 0.05);
+    }
+
+    /* ===== RÉSULTAT ===== */
+    .result-card {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0, 255, 204, 0.1));
+      border-radius: 24px;
+      padding: 25px;
+      margin: 20px 0;
+      text-align: center;
+      border: 1px solid var(--card-border);
+      display: none;
+    }
+
+    .result-card.show {
+      display: block;
+      animation: fadeIn 0.5s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .result-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .result-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .result-amount {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 15px 0;
+    }
+
+    .result-message {
+      color: var(--text-dim);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ===== NOTIFICATION ===== */
+    .notification {
+      position: fixed;
+      bottom: 80px;
+      left: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--primary);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      z-index: 1000;
+      transform: translateY(200px);
+      transition: transform 0.5s;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .notification.show {
+      transform: translateY(0);
+    }
+
+    .notification-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: black;
+    }
+
+    /* ===== BOUTON RETOUR ===== */
+    .back-home {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: black;
+      padding: 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 16px;
+      text-align: center;
+      box-shadow: 0 5px 20px rgba(0, 255, 204, 0.3);
+      z-index: 99;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="gradient-bg"></div>
+
+  <div class="notification" id="notification">
+    <div class="notification-icon">
+      <i class="fas fa-gift"></i>
+    </div>
+    <div class="notification-content">
+      <h4 id="notificationTitle">Roue</h4>
+      <p id="notificationMessage">Tentez votre chance !</p>
+    </div>
+  </div>
+
+  <header class="header">
+    <a href="calendrier.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i> Calendrier
+    </a>
+    <div class="page-title">
+      <i class="fas fa-circle-notch"></i> Roue
+    </div>
+    <div class="balance-display">
+      <i class="fas fa-coins"></i>
+      <span id="currentBalance">0 FCFA</span>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- En-tête -->
+    <div class="wheel-header">
+      <h1>ROUE DE LA CHANCE</h1>
+      <p>1 tour par semaine • Jusqu'à 400 FCFA</p>
+      <div class="week-badge" id="weekBadge">
+        <i class="fas fa-calendar-week"></i> <span id="weekNumber">Semaine 1</span>
+      </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="stats-card">
+      <div class="stats-grid">
+        <div>
+          <div class="stat-value" id="totalSpins">0</div>
+          <div class="stat-label">Tours total</div>
+        </div>
+        <div>
+          <div class="stat-value" id="bestWin">0</div>
+          <div class="stat-label">Meilleur gain</div>
+        </div>
+        <div>
+          <div class="stat-value" id="totalWon">0</div>
+          <div class="stat-label">Total gagné</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roue -->
+    <div class="wheel-container" id="wheelContainer" onclick="spinWheel()">
+      <div class="wheel" id="wheel">
+        <div class="wheel-segment segment-0">
+          <span class="segment-content">50</span>
+        </div>
+        <div class="wheel-segment segment-1">
+          <span class="segment-content">100</span>
+        </div>
+        <div class="wheel-segment segment-2">
+          <span class="segment-content">150</span>
+        </div>
+        <div class="wheel-segment segment-3">
+          <span class="segment-content">200</span>
+        </div>
+        <div class="wheel-segment segment-4">
+          <span class="segment-content">250</span>
+        </div>
+        <div class="wheel-segment segment-5">
+          <span class="segment-content">400</span>
+        </div>
+      </div>
+      <div class="wheel-pointer"></div>
+    </div>
+
+    <!-- Bouton tourner -->
+    <button class="btn-primary" id="spinBtn" onclick="spinWheel()">
+      <i class="fas fa-play"></i> TOURNER LA ROUE
+    </button>
+
+    <!-- Résultat -->
+    <div class="result-card" id="resultCard">
+      <div class="result-icon" id="resultIcon">🎉</div>
+      <div class="result-title" id="resultTitle">Félicitations !</div>
+      <div class="result-amount" id="resultAmount">+0 FCFA</div>
+      <div class="result-message" id="resultMessage">
+        Le gain a été ajouté à votre solde
+      </div>
+    </div>
+
+    <!-- Gains possibles -->
+    <div class="prizes-section">
+      <h3 class="section-title">
+        <i class="fas fa-gift"></i>
+        Gains possibles
+      </h3>
+
+      <div class="prizes-grid">
+        <div class="prize-card">
+          <div class="prize-color color-0"></div>
+          <div class="prize-label">Petit lot</div>
+          <div class="prize-amount">50 FCFA</div>
+        </div>
+        <div class="prize-card">
+          <div class="prize-color color-1"></div>
+          <div class="prize-label">Lot moyen</div>
+          <div class="prize-amount">100 FCFA</div>
+        </div>
+        <div class="prize-card">
+          <div class="prize-color color-2"></div>
+          <div class="prize-label">Bon lot</div>
+          <div class="prize-amount">150 FCFA</div>
+        </div>
+        <div class="prize-card">
+          <div class="prize-color color-3"></div>
+          <div class="prize-label">Très bon lot</div>
+          <div class="prize-amount">200 FCFA</div>
+        </div>
+        <div class="prize-card">
+          <div class="prize-color color-4"></div>
+          <div class="prize-label">Super lot</div>
+          <div class="prize-amount">250 FCFA</div>
+        </div>
+        <div class="prize-card">
+          <div class="prize-color color-5"></div>
+          <div class="prize-label">JACKPOT</div>
+          <div class="prize-amount">400 FCFA</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <a href="calendrier.html" class="back-home">
+    <i class="fas fa-home"></i> Retour au calendrier
+  </a>
+
+  <script>
+    // ============================================
+    // VARIABLES
+    // ============================================
+    let userData = null;
+    let userId = null;
+    
+    let hasSpun = false;
+    let isSpinning = false;
+    let totalSpins = 0;
+    let bestWin = 0;
+    let totalWon = 0;
+    let currentWeek = 1;
+    
+    const prizes = [50, 100, 150, 200, 250, 400];
+
+    // ============================================
+    // INITIALISATION
+    // ============================================
+    function init() {
+      loadUserData();
+      determineCurrentWeek();
+      checkThursdayStatus();
+      loadStats();
+      updateWeekDisplay();
+    }
+
+    // ============================================
+    // CHARGER DONNÉES UTILISATEUR
+    // ============================================
+    function loadUserData() {
+      userId = localStorage.getItem('earnzone_current_user');
+      
+      if (!userId) {
+        window.location.href = '../login.html';
+        return;
+      }
+      
+      const userDataStr = localStorage.getItem(`earnzone_user_${userId}`);
+      if (userDataStr) {
+        userData = JSON.parse(userDataStr);
+        document.getElementById('currentBalance').textContent = 
+          (userData.balance || 0).toLocaleString('fr-FR') + ' FCFA';
+      }
+    }
+
+    // ============================================
+    // DÉTERMINER LA SEMAINE
+    // ============================================
+    function determineCurrentWeek() {
+      const startDate = new Date('2024-01-01');
+      const today = new Date();
+      const diffTime = Math.abs(today - startDate);
+      const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+      currentWeek = diffWeeks + 1;
+    }
+
+    // ============================================
+    // VÉRIFIER LE STATUT DU JEUDI
+    // ============================================
+    function checkThursdayStatus() {
+      const today = new Date().getDay(); // 4 = Jeudi
+      const spinWeekKey = `wheel_week_${userId}`;
+      const hasSpunKey = `wheel_spun_${userId}`;
+      
+      const savedWeek = localStorage.getItem(spinWeekKey);
+      const spun = localStorage.getItem(hasSpunKey) === 'true';
+      
+      if (savedWeek != currentWeek) {
+        // Nouvelle semaine
+        localStorage.setItem(spinWeekKey, currentWeek);
+        localStorage.setItem(hasSpunKey, 'false');
+        hasSpun = false;
+        document.getElementById('spinBtn').disabled = false;
+      } else {
+        // Même semaine
+        hasSpun = spun;
+        if (hasSpun) {
+          document.getElementById('spinBtn').disabled = true;
+          document.getElementById('spinBtn').innerHTML = '<i class="fas fa-check-circle"></i> DÉJÀ JOUÉ';
+        }
+      }
+      
+      // Vérifier si c'est jeudi
+      if (today !== 4) {
+        document.getElementById('spinBtn').disabled = true;
+        document.getElementById('spinBtn').innerHTML = '<i class="fas fa-clock"></i> REVENEZ JEUDI';
+      }
+    }
+
+    // ============================================
+    // CHARGER LES STATISTIQUES
+    // ============================================
+    function loadStats() {
+      totalSpins = parseInt(localStorage.getItem(`wheel_total_spins_${userId}`)) || 0;
+      bestWin = parseInt(localStorage.getItem(`wheel_best_win_${userId}`)) || 0;
+      totalWon = parseInt(localStorage.getItem(`wheel_total_won_${userId}`)) || 0;
+      
+      document.getElementById('totalSpins').textContent = totalSpins;
+      document.getElementById('bestWin').textContent = bestWin + ' FCFA';
+      document.getElementById('totalWon').textContent = totalWon + ' FCFA';
+    }
+
+    // ============================================
+    // METTRE À JOUR L'AFFICHAGE DE LA SEMAINE
+    // ============================================
+    function updateWeekDisplay() {
+      document.getElementById('weekNumber').textContent = `Semaine ${currentWeek}`;
+    }
+
+      // ============================================
+    // TOURNER LA ROUE
+    // ============================================
+    function spinWheel() {
+      if (hasSpun || isSpinning) return;
+      
+      const today = new Date().getDay();
+      if (today !== 4) {
+        showNotification('⏰ Pas encore jeudi', 'Revenez jeudi pour jouer', 'warning');
+        return;
+      }
+      
+      isSpinning = true;
+      
+      // Calculer un angle aléatoire
+      const spins = 5 + Math.floor(Math.random() * 5); // 5 à 10 tours
+      const extraDegrees = Math.floor(Math.random() * 360);
+      const totalDegrees = spins * 360 + extraDegrees;
+      
+      // Faire tourner la roue
+      const wheel = document.getElementById('wheel');
+      wheel.style.transform = `rotate(${totalDegrees}deg)`;
+      
+      // Déterminer le gain après l'animation
+      setTimeout(() => {
+        const segmentIndex = Math.floor((extraDegrees % 360) / 60);
+        const gain = prizes[segmentIndex];
+        
+        // Marquer comme joué
+        hasSpun = true;
+        localStorage.setItem(`wheel_spun_${userId}`, 'true');
+        document.getElementById('spinBtn').disabled = true;
+        document.getElementById('spinBtn').innerHTML = '<i class="fas fa-check-circle"></i> DÉJÀ JOUÉ';
+        
+        // Mettre à jour les stats
+        totalSpins++;
+        totalWon += gain;
+        if (gain > bestWin) {
+          bestWin = gain;
+        }
+        
+        localStorage.setItem(`wheel_total_spins_${userId}`, totalSpins);
+        localStorage.setItem(`wheel_best_win_${userId}`, bestWin);
+        localStorage.setItem(`wheel_total_won_${userId}`, totalWon);
+        
+        // Ajouter les gains
+        userData.balance += gain;
+        userData.totalEarned += gain;
+        localStorage.setItem(`earnzone_user_${userId}`, JSON.stringify(userData));
+        
+        // Mettre à jour l'affichage
+        document.getElementById('currentBalance').textContent = 
+          (userData.balance || 0).toLocaleString('fr-FR') + ' FCFA';
+        document.getElementById('totalSpins').textContent = totalSpins;
+        document.getElementById('bestWin').textContent = bestWin + ' FCFA';
+        document.getElementById('totalWon').textContent = totalWon + ' FCFA';
+        
+        // Afficher le résultat
+        showResult(gain);
+        
+        // Marquer dans le calendrier
+        if (window.opener && window.opener.completeActivity) {
+          window.opener.completeActivity(4, gain);
+        }
+        
+        isSpinning = false;
+      }, 5000); // Durée de l'animation
+    }
+
+    // ============================================
+    // AFFICHER LE RÉSULTAT
+    // ============================================
+    function showResult(gain) {
+      const resultCard = document.getElementById('resultCard');
+      const resultIcon = document.getElementById('resultIcon');
+      const resultTitle = document.getElementById('resultTitle');
+      const resultAmount = document.getElementById('resultAmount');
+      const resultMessage = document.getElementById('resultMessage');
+      
+      resultAmount.textContent = `+${gain} FCFA`;
+      
+      if (gain === 400) {
+        resultIcon.innerHTML = '🏆';
+        resultTitle.textContent = 'JACKPOT !';
+        resultMessage.textContent = 'Incroyable ! Vous avez décroché le gros lot !';
+      } else if (gain >= 200) {
+        resultIcon.innerHTML = '🎉';
+        resultTitle.textContent = 'Super gain !';
+        resultMessage.textContent = 'Félicitations pour ce beau gain !';
+      } else {
+        resultIcon.innerHTML = '🎁';
+        resultTitle.textContent = 'Vous avez gagné !';
+        resultMessage.textContent = 'Le gain a été ajouté à votre solde.';
+      }
+      
+      resultCard.classList.add('show');
+      
+      showNotification('🎉 Gain !', `+${gain} FCFA`, 'success');
+    }
+
+    // ============================================
+    // NOTIFICATION
+    // ============================================
+    function showNotification(title, message, type = 'success') {
+      const notification = document.getElementById('notification');
+      document.getElementById('notificationTitle').textContent = title;
+      document.getElementById('notificationMessage').textContent = message;
+      notification.classList.add('show');
+      setTimeout(() => notification.classList.remove('show'), 3000);
+    }
+
+    // ============================================
+    // DÉMARRER
+    // ============================================
+    init();
+  </script>
+
+</body>
+</html>
