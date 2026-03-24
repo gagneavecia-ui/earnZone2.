@@ -266,9 +266,15 @@
 
     .methods-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 12px;
       margin-bottom: 15px;
+    }
+
+    @media (min-width: 450px) {
+      .methods-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
 
     .method-card {
@@ -302,6 +308,8 @@
     .moov .method-icon { color: #00aaff; }
     .airtel .method-icon { color: #ff0000; }
     .wave .method-icon { color: #0066ff; }
+    .my-nita .method-icon { color: #ff44cc; }
+    .amana .method-icon { color: #44ffaa; }
 
     .method-name {
       font-size: 14px;
@@ -994,6 +1002,24 @@
         <div class="method-name">Wave</div>
         <div class="method-fee">Frais: 50 FCFA</div>
       </div>
+
+      <!-- NOUVEAU: My Nita -->
+      <div class="method-card my-nita" data-method="mynita" id="methodMyNita">
+        <div class="method-icon my-nita">
+          <i class="fas fa-hand-holding-heart"></i>
+        </div>
+        <div class="method-name">My Nita</div>
+        <div class="method-fee">Frais: 75 FCFA</div>
+      </div>
+
+      <!-- NOUVEAU: Amana -->
+      <div class="method-card amana" data-method="amana" id="methodAmana">
+        <div class="method-icon amana">
+          <i class="fas fa-building-columns"></i>
+        </div>
+        <div class="method-name">Amana</div>
+        <div class="method-fee">Frais: 50 FCFA</div>
+      </div>
     </div>
 
     <!-- ===== CHAMP NUMÉRO DE TÉLÉPHONE ===== -->
@@ -1005,13 +1031,13 @@
       <div class="phone-input-wrapper">
         <i class="fas fa-phone phone-icon"></i>
         <input type="tel" id="phoneNumber" class="phone-input" 
-               placeholder="Ex: 90 12 34 56" 
+               placeholder="Ex: 90 12 34 56 " 
                value=""
                required>
       </div>
       <div class="phone-info">
         <i class="fas fa-info-circle"></i>
-        Entrez le numéro où vous recevrez l'argent
+        Entrez le numéro ou identifiant de réception
       </div>
     </div>
 
@@ -1096,12 +1122,14 @@
     let userId = null;
     let withdrawalHistory = [];
     
-    // Méthodes de retrait
+    // Méthodes de retrait avec les nouveaux moyens
     const methods = {
       orange: { name: 'Orange Money', fee: 100 },
       moov: { name: 'Moov Money', fee: 100 },
       airtel: { name: 'Airtel Money', fee: 100 },
-      wave: { name: 'Wave', fee: 50 }
+      wave: { name: 'Wave', fee: 50 },
+      mynita: { name: 'My Nita', fee: 75 },
+      amana: { name: 'Amana', fee: 50 }
     };
     
     let selectedMethod = 'orange';
@@ -1134,7 +1162,6 @@
         updateBalance();
         checkWithdrawBlock();
         
-        // Pré-remplir le numéro de téléphone si existant
         if (userData.phone) {
           document.getElementById('phoneNumber').value = userData.phone;
         }
@@ -1148,7 +1175,6 @@
     // ============================================
     function updateBalance() {
       if (!userData) return;
-      
       const balance = userData.balance || 0;
       document.getElementById('currentBalance').textContent = formatCurrency(balance) + ' FCFA';
       document.getElementById('availableBalance').textContent = formatCurrency(balance) + ' FCFA';
@@ -1169,7 +1195,6 @@
       const phoneInput = document.getElementById('phoneNumber');
       
       if (activeInvestments.length === 0) {
-        // AUCUN INVESTISSEMENT ACTIF - Retrait autorisé
         blockSection.innerHTML = '';
         activeInvestmentsList.innerHTML = '';
         methodsGrid.style.opacity = '1';
@@ -1179,19 +1204,16 @@
         return;
       }
       
-      // IL Y A DES INVESTISSEMENTS ACTIFS - Retrait bloqué
       methodsGrid.style.opacity = '0.5';
       amountInput.disabled = true;
       phoneInput.disabled = true;
       
-      // Calculer la date de fin la plus lointaine
       const endDates = activeInvestments.map(inv => new Date(inv.endDate).getTime());
       const longestEndDate = Math.max(...endDates);
       const now = Date.now();
       const daysLeft = Math.ceil((longestEndDate - now) / (1000 * 60 * 60 * 24));
       const totalDays = activeInvestments.reduce((sum, inv) => sum + inv.totalDays, 0);
       
-      // Afficher le blocage
       blockSection.innerHTML = `
         <div class="block-card">
           <div class="block-icon">
@@ -1216,13 +1238,10 @@
         </div>
       `;
       
-      // Afficher la liste des investissements actifs
       let investmentsHtml = '<div class="investments-preview"><h3 class="section-title" style="margin-bottom: 15px;"><i class="fas fa-chart-line"></i> Investissements en cours</h3>';
-      
       activeInvestments.forEach(inv => {
         const endDate = new Date(inv.endDate);
         const daysRemaining = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
-        
         investmentsHtml += `
           <div class="investment-item-mini">
             <div class="investment-info">
@@ -1233,11 +1252,9 @@
           </div>
         `;
       });
-      
       investmentsHtml += '</div>';
       activeInvestmentsList.innerHTML = investmentsHtml;
       
-      // Désactiver le bouton
       withdrawBtn.disabled = true;
       withdrawBtn.classList.add('blocked');
       withdrawBtn.innerHTML = '<i class="fas fa-lock"></i> RETRAIT BLOQUÉ';
@@ -1252,7 +1269,7 @@
       const balance = userData?.balance || 0;
       const phoneNumber = document.getElementById('phoneNumber').value.trim();
       
-      if (amount >= 5000 && amount <= balance && phoneNumber.length >= 8) {
+      if (amount >= 5000 && amount <= balance && phoneNumber.length >= 4) {
         withdrawBtn.disabled = false;
         withdrawBtn.classList.remove('blocked');
         withdrawBtn.innerHTML = '<i class="fas fa-paper-plane"></i> DEMANDER LE RETRAIT';
@@ -1265,7 +1282,6 @@
     // CONFIGURER LES ÉVÉNEMENTS
     // ============================================
     function setupEventListeners() {
-      // Sélection des méthodes
       document.querySelectorAll('.method-card').forEach(card => {
         card.addEventListener('click', function() {
           document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
@@ -1275,14 +1291,12 @@
         });
       });
 
-      // Montant personnalisé
       document.getElementById('amountInput').addEventListener('input', function() {
         const amount = parseInt(this.value) || 0;
         setAmount(amount);
         checkWithdrawButton();
       });
 
-      // Montants rapides
       document.querySelectorAll('.quick-amount').forEach(btn => {
         btn.addEventListener('click', function() {
           const amount = parseInt(this.dataset.amount);
@@ -1292,21 +1306,14 @@
         });
       });
 
-      // Champ téléphone
       document.getElementById('phoneNumber').addEventListener('input', function() {
         checkWithdrawButton();
       });
 
-      // Bouton de retrait
       document.getElementById('withdrawBtn').addEventListener('click', openConfirmModal);
-
-      // Bouton effacer historique
       document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
     }
   
-     // ============================================
-    // DÉFINIR LE MONTANT
-    // ============================================
     function setAmount(amount) {
       document.querySelectorAll('.quick-amount').forEach(btn => {
         btn.classList.remove('active');
@@ -1314,16 +1321,12 @@
           btn.classList.add('active');
         }
       });
-      
       updateSummary();
     }
 
-    // ============================================
-    // METTRE À JOUR LE RÉCAPITULATIF
-    // ============================================
     function updateSummary() {
       const amount = parseInt(document.getElementById('amountInput').value) || 0;
-      const fee = methods[selectedMethod].fee;
+      const fee = methods[selectedMethod]?.fee || 0;
       const net = Math.max(0, amount - fee);
       
       document.getElementById('requestedAmount').textContent = formatCurrency(amount) + ' FCFA';
@@ -1331,9 +1334,6 @@
       document.getElementById('netAmount').textContent = formatCurrency(net) + ' FCFA';
     }
 
-    // ============================================
-    // OUVRIR LA MODALE DE CONFIRMATION
-    // ============================================
     function openConfirmModal() {
       const amount = parseInt(document.getElementById('amountInput').value) || 0;
       const fee = methods[selectedMethod].fee;
@@ -1341,20 +1341,19 @@
       const methodName = methods[selectedMethod].name;
       const phoneNumber = document.getElementById('phoneNumber').value.trim();
       
-      // Validation du numéro
       if (!phoneNumber) {
-        showNotification('❌ Erreur', 'Veuillez entrer votre numéro de téléphone', 'error');
+        showNotification('❌ Erreur', 'Veuillez entrer votre numéro ou identifiant', 'error');
         return;
       }
       
-      if (phoneNumber.length < 8) {
-        showNotification('❌ Erreur', 'Numéro de téléphone invalide', 'error');
+      if (phoneNumber.length < 4) {
+        showNotification('❌ Erreur', 'Identifiant invalide', 'error');
         return;
       }
       
       document.getElementById('modalDetails').innerHTML = `
         <p><strong>Méthode:</strong> ${methodName}</p>
-        <p><strong>Numéro:</strong> ${phoneNumber}</p>
+        <p><strong>Identifiant:</strong> ${phoneNumber}</p>
         <p><strong>Montant demandé:</strong> ${formatCurrency(amount)} FCFA</p>
         <p><strong>Frais:</strong> ${formatCurrency(fee)} FCFA</p>
         <p><strong>Vous recevrez:</strong> ${formatCurrency(net)} FCFA</p>
@@ -1368,24 +1367,17 @@
       document.getElementById('modalConfirm').onclick = processWithdrawal;
     }
 
-    // ============================================
-    // FERMER LA MODALE
-    // ============================================
     function closeModal() {
       document.getElementById('modalOverlay').classList.remove('show');
       document.getElementById('confirmModal').classList.remove('show');
     }
 
-    // ============================================
-    // TRAITER LE RETRAIT
-    // ============================================
     function processWithdrawal() {
       const amount = parseInt(document.getElementById('amountInput').value) || 0;
       const fee = methods[selectedMethod].fee;
       const net = amount - fee;
       const phoneNumber = document.getElementById('phoneNumber').value.trim();
       
-      // Vérifier une dernière fois que le retrait est autorisé
       const investments = userData.investments || [];
       const activeInvestments = investments.filter(inv => inv.status === 'active');
       
@@ -1395,15 +1387,11 @@
         return;
       }
       
-      // Mettre à jour le solde
       userData.balance -= amount;
       userData.totalWithdrawn = (userData.totalWithdrawn || 0) + amount;
-      
-      // Sauvegarder le numéro dans le profil de l'utilisateur
       userData.phone = phoneNumber;
       localStorage.setItem(`earnzone_user_${userId}`, JSON.stringify(userData));
       
-      // Créer l'historique
       const now = new Date();
       const withdrawal = {
         id: 'wd_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
@@ -1419,31 +1407,20 @@
       };
       
       withdrawalHistory.unshift(withdrawal);
-      
-      // Sauvegarder
-      localStorage.setItem(`earnzone_user_${userId}`, JSON.stringify(userData));
       saveHistory();
       
-      // Mettre à jour l'interface
       updateBalance();
       updateSummary();
       displayHistory();
       
-      // Fermer la modale
       closeModal();
-      
-      // Notification
       showNotification('✅ Retrait demandé', `Vous recevrez ${formatCurrency(net)} FCFA sur ${phoneNumber}`, 'success');
       
-      // Réinitialiser
       document.getElementById('amountInput').value = 5000;
       setAmount(5000);
       checkWithdrawButton();
     }
 
-    // ============================================
-    // CHARGER L'HISTORIQUE
-    // ============================================
     function loadHistory() {
       const historyStr = localStorage.getItem(`withdrawal_history_${userId}`);
       if (historyStr) {
@@ -1453,26 +1430,14 @@
       checkPendingStatus();
     }
 
-    // ============================================
-    // SAUVEGARDER L'HISTORIQUE
-    // ============================================
     function saveHistory() {
       localStorage.setItem(`withdrawal_history_${userId}`, JSON.stringify(withdrawalHistory));
     }
 
-    // ============================================
-    // AFFICHER L'HISTORIQUE
-    // ============================================
     function displayHistory() {
       const container = document.getElementById('historyList');
-      
       if (withdrawalHistory.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <i class="fas fa-history"></i>
-            <p>Aucun retrait effectué</p>
-          </div>
-        `;
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-history"></i><p>Aucun retrait effectué</p></div>`;
         return;
       }
       
@@ -1480,20 +1445,16 @@
       withdrawalHistory.forEach(item => {
         let statusClass = 'status-pending';
         let statusText = 'En attente';
-        
         if (item.status === 'completed') {
           statusClass = 'status-completed';
           statusText = 'Validé';
         }
-        
         html += `
           <div class="history-item">
             <div class="history-info">
               <div class="history-date">${item.date} ${item.time}</div>
               <div class="history-method">${item.method}</div>
-              <div class="history-phone">
-                <i class="fas fa-phone"></i> ${item.phone || 'Non spécifié'}
-              </div>
+              <div class="history-phone"><i class="fas fa-phone"></i> ${item.phone || 'Non spécifié'}</div>
             </div>
             <div style="display: flex; align-items: center;">
               <div>
@@ -1505,41 +1466,30 @@
           </div>
         `;
       });
-      
       container.innerHTML = html;
     }
 
-    // ============================================
-    // VÉRIFIER LES STATUTS EN ATTENTE
-    // ============================================
     function checkPendingStatus() {
       const now = Date.now();
       let updated = false;
-      
       withdrawalHistory.forEach(item => {
         if (item.status === 'pending' && now - item.timestamp > 5 * 60 * 1000) {
           item.status = 'completed';
           updated = true;
         }
       });
-      
       if (updated) {
         saveHistory();
         displayHistory();
       }
-      
       setTimeout(checkPendingStatus, 60000);
     }
 
-    // ============================================
-    // EFFACER L'HISTORIQUE
-    // ============================================
     function clearHistory() {
       if (withdrawalHistory.length === 0) {
         showNotification('ℹ️ Info', 'Aucun historique à effacer', 'info');
         return;
       }
-      
       if (confirm('Voulez-vous vraiment effacer tout l\'historique ?')) {
         withdrawalHistory = [];
         saveHistory();
@@ -1548,31 +1498,18 @@
       }
     }
 
-    // ============================================
-    // NOTIFICATION
-    // ============================================
     function showNotification(title, message, type = 'success') {
       const notification = document.getElementById('notification');
       document.getElementById('notificationTitle').textContent = title;
       document.getElementById('notificationMessage').textContent = message;
-      
       notification.classList.add('show');
-      
-      setTimeout(() => {
-        notification.classList.remove('show');
-      }, 3000);
+      setTimeout(() => notification.classList.remove('show'), 3000);
     }
 
-    // ============================================
-    // FORMATER UNE VALEUR MONÉTAIRE
-    // ============================================
     function formatCurrency(amount) {
       return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     }
 
-    // ============================================
-    // SYNCHRONISATION
-    // ============================================
     setInterval(function() {
       const savedData = localStorage.getItem(`earnzone_user_${userId}`);
       if (savedData) {
@@ -1581,20 +1518,12 @@
           userData = freshData;
           updateBalance();
           checkWithdrawBlock();
-          
-          // Mettre à jour le numéro de téléphone si changé ailleurs
-          if (freshData.phone) {
-            document.getElementById('phoneNumber').value = freshData.phone;
-          }
+          if (freshData.phone) document.getElementById('phoneNumber').value = freshData.phone;
         }
       }
     }, 3000);
 
-    // ============================================
-    // DÉMARRER L'APPLICATION
-    // ============================================
     document.addEventListener('DOMContentLoaded', init);
   </script>
-
 </body>
 </html>
